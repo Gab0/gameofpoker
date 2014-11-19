@@ -101,10 +101,8 @@ edead = 0
 wdead = 0
 
 
-
+# function starts the round and deal the cards.
 def deal():
-    
-    
     
     # deck generator. first char [0] stands for color, and second [1] for number.    
     global deck
@@ -564,6 +562,13 @@ def conclusion():
     print ""
     print ""
     raw_input("")
+
+
+    if schips <= 0:
+        print ""
+        print "Game Over."
+        while schips <= 0:
+            raw_input("")
     blind()
 
     
@@ -584,58 +589,101 @@ def raisebet(player):
         
         global ebet
         global echips
-        lastbet = 4
+        plastbet = 4
         pname = ename
         pbet = ebet
         ebet = bet
-        echips -= (bet- pbet)
+        pchips = echips
 
     elif player == "w":
         
         global wbet
         global wchips
-        lastbet = 2
+        plastbet = 2
         pname = wname
         pbet = wbet
         wbet = bet
-        wchips -= (bet- pbet)
+        pchips = wchips
 
     elif player == "n":
         
         global nbet
         global nchips
-        lastbet = 3
+        plastbet = 3
         pname = nname
         pbet = nbet
         nbet = bet
-        nchips -= (bet- pbet)
+        pchips = nchips
         
     elif player == "s":
         
         global sbet       
         global schips
-        lastbet = 1
+        plastbet = 1
         pname = sname
         pbet = sbet
         sbet = bet
-        echips -= (bet-pbet)
+        pchips = schips
+
+    if pchips > bet-pbet:
         
-        
-    pot += (bet-pbet)
-    
+        lastbet = plastbet    
+        pot += (bet-pbet)
+        pchips -=(bet-pbet)
+        afteraise(player, pchips, pbet)
+        print pname+" raises to "+str(bet)+" chips."
+        print ""
+
+
+    elif pchips <= bet-pbet:
+
+        lastbet = plastbet
+        pot += pchips
+        bet += pchips
+        pbet += pchips
+        pchips = 0
+        print ""
+        print pname+" raises to ALL IN! ["+str(bet)+"]."
+        afteraise(player, pchips, pbet)
     
     
 
         
-    print pname+" raises to "+str(bet)+" chips."
-    print ""
 
+def afteraise(player, pchips, pbet):
+    global bet
+    global pot
+    global minimum
+
+    if player == "w":
+        global wchips
+        global wbet
+        wchips = pchips
+        wbet = pbet
+
+    elif player == "n":
+        global nchips
+        global nbet
+        nchips = pchips
+        nbet = pbet
+
+    elif player == "e":
+        global echips
+        global ebet
+        echips = pchips
+        ebet = pbet
+
+    elif player == "s":
+        global schips
+        global sbet
+        schips = pchips
+        sbet = pbet
 
        
 def paycheck(player):
     global bet
     global pot
-    global minimum
+
     
     if player == "w":
         global wbet
@@ -1569,10 +1617,12 @@ def checkhandvalue(player):
         if antiposcard[a[1]] <= antiposcard[b[1]]:
             handvalue = 13-antiposcard[a[1]]
             hc = a
+            lc = b
         else:
             
             handvalue = 13-antiposcard[b[1]]
             hc = b
+            lc = a
 
         comment = "High Card "+hc[1]
 
@@ -1587,7 +1637,7 @@ def checkhandvalue(player):
             pos=xit.index('4')
             comment = "Quartet of "+poscard[pos]+"'s."
 
-            handvalue = 1000
+            handvalue = 1600
             deuce = 13 - pos
             handvalue += deuce
             
@@ -1597,8 +1647,11 @@ def checkhandvalue(player):
            
             comment = "full house... "+poscard[pos]+" 's, and "+poscard[pos2]+" 's."
             handvalue=800
-            deuce = 13-pos
+            deuce = 80-2*pos
             handvalue += deuce
+            deuce = 13-pos2
+            handvalue += deuce
+            
 
         elif (c > 4) or (p > 4) or (s > 4) or (o > 4):
             
@@ -1662,20 +1715,24 @@ def checkhandvalue(player):
             if "2" in xit[pos+1:12]:
                pos2=xit[pos+1:12].index('2')+pos+1
                
-               handvalue = 150
+               handvalue = 230
                deuce = 2*(50-pos)
                handvalue += deuce
                
                comment = "Two pairs... "+poscard[pos]+"'s and "+poscard[pos2]+"'s ."
 
-               if pos != antiposcard[hc[1]]:
+               if (pos != antiposcard[hc[1]]) and (pos2 != antiposcard[hc[1]]):
                    comment += "Kicker: "+hc[1]
                    handvalue += 13-antiposcard[hc[1]]
+
+               elif (pos != antiposcard[lc[1]]) and (pos2 != antiposcard[lc[1]]):
+                   comment += "Kicker: "+lc[1]
+                   handvalue += 13-antiposcard[lc[1]]
                
             else:
                
                handvalue=50
-               deuce=(50-pos)*2
+               deuce=100-pos*4
                handvalue += deuce
                 
                
@@ -1684,6 +1741,12 @@ def checkhandvalue(player):
                if pos != antiposcard[hc[1]]:
                    comment += " Kicker: "+hc[1]
                    handvalue += 13-antiposcard[hc[1]]
+
+               elif pos != antiposcard[lc[1]]:
+                   comment += " Kicker: "+lc[1]
+                   handvalue += 13-antiposcard[lc[1]]
+
+
                
         return handvalue
 
