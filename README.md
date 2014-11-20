@@ -11,4 +11,4 @@ A small text-based tournament of NLHE poker. The player fights three computer br
 license
 =======
 
- Creative Commons 4.0
+GPL.
