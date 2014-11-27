@@ -1,0 +1,6 @@
+Known issues:
+
+~ Doesn't detect straight flushes properly.
+~ AI is likely insane. Sometimes raises the pot indefinitely.
+~ All-in pot divisions doesn't exist.
+~ Split pot results at end of rounds doesn't work.
