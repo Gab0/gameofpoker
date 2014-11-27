@@ -136,6 +136,7 @@ def deal():
     wfold = 0
 
 
+
     global gamephase
     gamephase = "preflop"
     
@@ -535,28 +536,60 @@ def conclusion():
 
     print ""
     
-    if max(results.iteritems(), key=operator.itemgetter(1))[0] == "w":
-        print wname+" wins "+str(pot)+" chips."
-        global wchips
-        wchips += pot
-        
-    
-    elif max(results.iteritems(), key=operator.itemgetter(1))[0] == "e":
-        print ename+" wins "+str(pot)+" chips."
-        global echips
-        echips+=pot
+    winners = ""
+    winners += max(results.iteritems(), key=operator.itemgetter(1))[0]
 
-    
-    elif max(results.iteritems(), key=operator.itemgetter(1))[0] == "n":
-        print nname+" wins "+str(pot)+" chips."
-        global nchips
-        nchips += pot
+    global echips
+    global schips
+    global nchips
+    global wchips
 
-    
-    elif max(results.iteritems(), key=operator.itemgetter(1))[0] == "s":
-        print sname+" wins "+str(pot)+" chips."
-        global schips
-        schips+=pot
+    if len(winners) == 1:
+        if winners == "w":
+            print wname+" wins "+str(pot)+" chips."
+
+            wchips += pot
+
+        elif winners == "e":
+            print ename+" wins "+str(pot)+" chips."
+
+            echips+=pot
+
+        elif winners == "n":
+            print nname+" wins "+str(pot)+" chips."
+
+            nchips += pot
+
+        elif winners == "s":
+            print sname+" wins "+str(pot)+" chips."
+
+            schips+=pot
+
+    elif len(winners) > 1:
+        print "splitpot! " + pot/len(winners) + " for each."
+        for i in range(0, len(winners)-1):
+            if winners[i] == "w":
+                print wname
+
+                wchips += pot/len(winners)
+
+            elif winners[i] == "e":
+                print ename
+
+                echips += pot/len(winners)
+
+            elif winners[i] == "n":
+                print nname
+
+                nchips += pot/len(winners)
+
+            elif winners[i] == "s":
+                print sname
+
+                schips += pot/len(winners)
+
+
+
 
 
     print ""
@@ -583,7 +616,7 @@ def raisebet(player):
     global pot
     global minimum
     
-    bet += minimum
+
     
     if player == "e":
         
@@ -592,7 +625,7 @@ def raisebet(player):
         plastbet = 4
         pname = ename
         pbet = ebet
-        ebet = bet
+
         pchips = echips
 
     elif player == "w":
@@ -602,7 +635,7 @@ def raisebet(player):
         plastbet = 2
         pname = wname
         pbet = wbet
-        wbet = bet
+
         pchips = wchips
 
     elif player == "n":
@@ -612,7 +645,7 @@ def raisebet(player):
         plastbet = 3
         pname = nname
         pbet = nbet
-        nbet = bet
+
         pchips = nchips
         
     elif player == "s":
@@ -622,14 +655,16 @@ def raisebet(player):
         plastbet = 1
         pname = sname
         pbet = sbet
-        sbet = bet
+
         pchips = schips
 
     if pchips > bet-pbet:
         
-        lastbet = plastbet    
+        lastbet = plastbet
+        bet += minimum
         pot += (bet-pbet)
         pchips -=(bet-pbet)
+        pbet=bet
         afteraise(player, pchips, pbet)
         print pname+" raises to "+str(bet)+" chips."
         print ""
@@ -940,15 +975,29 @@ def freebet(player, cash):
 
 def checkhandpreflop(h, hh):
     handvalue = 0
-    if (h[1] == "A") or (hh[1] == "A"):
+    if (h[1] == "A") and (hh[1] == "A"):
+        handvalue += 30
+    elif (h[1] == "A") or (hh[1] == "A"):
         handvalue += 15
-    if (h[1] == "K") or (hh[1] == "K"):
+        
+    if (h[1] == "K") and (hh[1] == "K"):
+        handvalue += 28
+    elif (h[1] == "K") or (hh[1] == "K"):
         handvalue += 14
-    if (h[1] == "Q") or (hh[1] == "Q"):
+
+    if (h[1] == "Q") and (hh[1] == "Q"):
+        handvalue += 26        
+    elif (h[1] == "Q") or (hh[1] == "Q"):
         handvalue += 12
-    if (h[1] == "J") or (hh[1] == "J"):
+        
+    if (h[1] == "J") and (hh[1] == "J"):
+        handvalue += 22        
+    elif (h[1] == "J") or (hh[1] == "J"):
         handvalue += 10
-    if (h[1] == "T") or (hh[1] == "T"):
+
+    if (h[1] == "T") and (hh[1] == "T"):
+        handvalue += 20        
+    elif (h[1] == "T") or (hh[1] == "T"):
         handvalue += 8
     
     if (h[1] == "2") or (hh[1] == "2"):
@@ -1210,6 +1259,7 @@ def blind():
     global nbet
     global wbet
     global ebet
+    pot = 0
 
     global button
     if button == 4:
@@ -1615,16 +1665,13 @@ def checkhandvalue(player):
 
         
         if antiposcard[a[1]] <= antiposcard[b[1]]:
-            handvalue = 13-antiposcard[a[1]]
             hc = a
             lc = b
-        else:
-            
-            handvalue = 13-antiposcard[b[1]]
+        else:   
             hc = b
             lc = a
 
-        comment = "High Card "+hc[1]
+
 
 
                             
@@ -1656,7 +1703,7 @@ def checkhandvalue(player):
         elif (c > 4) or (p > 4) or (s > 4) or (o > 4):
             
             comment = "Flush!"
-            handvalue += 650
+            handvalue += 1000
             
         elif containsAll(unumbers, 'TJQKA') == 1:
             
@@ -1715,8 +1762,8 @@ def checkhandvalue(player):
             if "2" in xit[pos+1:12]:
                pos2=xit[pos+1:12].index('2')+pos+1
                
-               handvalue = 230
-               deuce = 2*(50-pos)
+               handvalue = 360
+               deuce = -13*pos
                handvalue += deuce
                
                comment = "Two pairs... "+poscard[pos]+"'s and "+poscard[pos2]+"'s ."
@@ -1731,8 +1778,8 @@ def checkhandvalue(player):
                
             else:
                
-               handvalue=50
-               deuce=100-pos*4
+               handvalue=180
+               deuce=-13*pos
                handvalue += deuce
                 
                
@@ -1745,6 +1792,11 @@ def checkhandvalue(player):
                elif pos != antiposcard[lc[1]]:
                    comment += " Kicker: "+lc[1]
                    handvalue += 13-antiposcard[lc[1]]
+
+        else:
+
+            handvalue = 13-antiposcard[hc[1]]
+            comment = "High Card "+hc[1]
 
 
                
