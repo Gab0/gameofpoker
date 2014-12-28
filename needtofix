@@ -1,0 +1,11 @@
+Known issues:
+
+Poker mechanic wise:
+
+~ Doesn't detect straight flushes properly, on the score department.
+~ All-in pot divisions doesn't exist, when a player go all-in before more bets.
+~ Split pot results at end of rounds doesn't work, in case of ties.
+
+Else:
+
+~ AI is likely insane. Sometimes raises the pot indefinitely, aways is easy to beat.
