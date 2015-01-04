@@ -4,31 +4,87 @@ import operator
 
 names = ['Freddie', 'Suzanne', 'Wellington', 'Roberts', 'Spacely', 'John', 'Ruanito', 'Chavez', 'Wilson', 'Ford', 'Nikolai', 'Samara', 'Fernandita', 'Nikki', 'Andersen', 'Magda']
 
-global ename
-x = randint(0,len(names)-1)
-ename = names[x]
-del names[x]
-global nname
-x = randint(0,len(names)-1)
-nname = names[x]
-del names[x]
-global wname
-x = randint(0,len(names)-1)
-wname = names[x]
-del names[x]
-global sname
-sname = raw_input('Your name, sir?')
 
 
-print "Welcome to satanic poker table."
+class player:
+
+    def __init__(self, name = 'AI'):
+        self.chips = 1500
+        self.bet = 0
+
+        if name == 'AI':
+            x = randint(0, len(names)-1)
+            self.name = names[x]
+            del names[x]
+            
+        else:
+            self.name = name
+        
+        self.dead = 0
+        
+        self.h1 = None
+        self.h2 = None
+
+        self.fold = 0
+
+        order.append(self)
+
+
+class game:
+
+    def __init__(self):
+        self.pot = None
+        self.bet = None
+        self.minimum = 20
+        self.button = order[randint(0, len(order)-1)]
+        self.deck = None
+
+        self.f1 = None
+        self.f2 = None
+        self.f3 = None
+        self.trn = None
+        self.riv = None
+        
+
+
+
+
+order = []
+
+
+south = player(name = raw_input('Your name, sir?'))
+sp = south
+
+
+west = player()
+wp = west
+
+
+north = player()
+np = north
+
+east = player()
+ep = east
+
+
+
+pkr = game()
+
+
+
+print "Welcome to satanic poker table, "+sp.name+"."
+print ""
 print "You will be seated in a four-player NLHE tournament table."
 raw_input("")
-print "And will end victorious if you can beat the AI before they beat you. Have fun and suffer."
+print "And will end victorious if you can beat the AI before they beat you. Have fun, and suffer."
 raw_input("")
 print ""
-print nname + " is in front of you, " + wname + " at your left, and " + ename + " at your right."
+print np.name + " is in front of you, " + wp.name + " at your left, and " + ep.name + " at your right."
 print ""
 raw_input("")
+
+
+print 
 
 #card name content. 'e' stands for spades, 'p' for clubs, 'o' for diamonds, and 'c' for hearts...
 card = {'eA': 'Ace of Spades', 'pA': 'Ace of Clubs', 'oA': 'Ace of Diamonds', 'cA': 'Ace of Hearts'}
@@ -57,84 +113,43 @@ card.update(cardz)
 cardz = {'e2': 'Two of Spades', 'p2': 'Two of Clubs', 'o2': 'Two of Diamonds', 'c2': 'Two of Hearts'}
 card.update(cardz)
 
-bet = 0
-chip = 0
-minimum = 20
 
 
-schips = 1500
 
-nchips = 1500
 
-wchips = 1500
 
-echips = 1500
-
-button = randint(1,4)
 
 time = 0
 
 pot = 0
 
 
-deck="0"
-sh1="0"
-sh2="0"
-eh1="0"
-eh2="0"
-nh1="0"
-nh2="0"
-nh2="0"
+deck= None
 
 
 
-sbet=0
-wbet=0
-nbet=0
-ebet=0
+lastbet = 0
 
-lastbet =0
 
-ndead = 0
-sdead = 0
-edead = 0
-wdead = 0
 
 
 # function starts the round and deal the cards.
 def deal():
     
     # deck generator. first char [0] stands for color, and second [1] for number.    
-    global deck
-    deck = ['eA', 'pA', 'oA', 'cA', 'eK', 'pK', 'oK', 'cK', 'eQ', 'pQ', 'oQ', 'cQ', 'eJ', 'pJ', 'oJ', 'cJ', 'eT', 'pT', 'oT', 'cT', 'e9', 'p9', 'o9', 'c9', 'e8', 'p8', 'o8', 'c8', 'e7', 'p7', 'o7', 'c7', 'e6', 'p6', 'o6', 'c6', 'e5', 'p5', 'o5', 'c5', 'e4', 'p4', 'o4', 'c4', 'e3', 'p3', 'o3', 'c3', 'e2', 'p2', 'o2', 'c2']
+    pkr.deck = ['eA', 'pA', 'oA', 'cA', 'eK', 'pK', 'oK', 'cK', 'eQ', 'pQ', 'oQ', 'cQ', 'eJ', 'pJ', 'oJ', 'cJ', 'eT', 'pT', 'oT', 'cT', 'e9', 'p9', 'o9', 'c9', 'e8', 'p8', 'o8', 'c8', 'e7', 'p7', 'o7', 'c7', 'e6', 'p6', 'o6', 'c6', 'e5', 'p5', 'o5', 'c5', 'e4', 'p4', 'o4', 'c4', 'e3', 'p3', 'o3', 'c3', 'e2', 'p2', 'o2', 'c2']
 
-    if schips > 0:
-        dealcard("sh1")
-        dealcard("sh2")
-        
-    if nchips > 0:
-        dealcard("nh1")
-        dealcard("nh2")
 
-    if echips > 0:
-        dealcard("eh1")
-        dealcard("eh2")
+    for i in range(0, len(order)):
 
-    if wchips > 0:
-        dealcard("wh1")
-        dealcard("wh2")
+        if order[i].dead == 0:
+            order[i].h1 = dealcard()
+            order[i].h2 = dealcard()
+
 
     
 
-    global sfold
-    sfold = 0
-    global efold
-    efold = 0
-    global nfold
-    nfold = 0
-    global wfold
-    wfold = 0
-
+    reset_folds()
 
 
     global gamephase
@@ -142,38 +157,34 @@ def deal():
     
     print "dealing..."
 
-    print "you got " + card[sh1] + " and " + card[sh2] + "."
+    print "you got " + card[sp.h1] + " and " + card[sp.h2] + "."
     print ""
-    
+
+
+
+def player_turn(player):
+    if lastbet == player:
+        nextphase()
+    if player.chips <= 0:
+        nexturn()
+
+    if player.fold == 1:
+        nexturn()
+
+
 
     
-
-def sturn():
-    global sfold
-    global strt
-    global lastbet
-    global schips
-    
-    if (lastbet == 1) and (strt==0):
-            nextphase()
-
-    if (sfold == 0) and (schips != 0):
-
-
-        global pot
-        global bet
-        global sbet
+    if player == sp:
         
-  
         strt = 0 
         action = 0
         print ""
         
-        print "your turn... you got " + card[sh1] + " and " + card[sh2] + ".\n"
-        print "also, you have " + str(schips) + " chips.\n"
-        print "The pot is at " +str(pot)+ " chips.\n"
-        print "Current bet is "+str(bet)+" chips.\n"
-        print "You have already bet "+str(sbet)+" chips this round.\n"
+        print "your turn... you got " + card[sp.h1] + " and " + card[sp.h2] + ".\n"
+        print "also, you have " + str(sp.chips) + " chips.\n"
+        print "The pot is at " +str(pkr.pot)+ " chips.\n"
+        print "Current bet is "+str(pkr.bet)+" chips.\n"
+        print "You have already bet "+str(sp.bet)+" chips this round.\n"
         action = raw_input("do?... [fold/check/pay/raise/bet/look table]")
         while not (action == "fold") and not(action =="check") and not (action=="pay") and not (action=="raise") and not (action=="bet") and not (action=="look table"):
             action = raw_input("do?... [fold/check/pay/raise/bet/look table]")
@@ -183,195 +194,92 @@ def sturn():
             
             options(action)
         print ""
+
+
     else:
-        print ""
-        wturn()
 
-
-def eturn():
-    global efold
-    global strt
-    global lastbet
-    global echips
-
-    global edead
-
-    if (lastbet == 4) and (strt==0):
-            nextphase()
-#    elif (lastbet == 0) and (button == 4) and (strt == 0):
-#            nextphase()
-    if (efold == 0) and (echips != 0):
-
-        global gamephase
-        
+  
 
 
         strt = 0 
-        global minimum
 
-        print ename + "'s turn... he got " + str(echips) + " chips."
+        print player.name + "'s turn... he got " + str(player.chips) + " chips."
         print "thinking"
-        global pot
-        global ebet
-        
-        
-        global bet
 
         if gamephase == "preflop":
             
-            AI_preflop("e")
+            AI_preflop(player)
 
         elif gamephase == "flop":
 
-            AI_flop("e")
+            AI_flop(player)
 
         elif gamephase == "turn":
 
-            AI_turn("e")
+            AI_turn(player)
 
         elif gamephase == "river":
 
-            AI_river("e")
+            AI_river(player)
 
         raw_input("")
-        sturn()
+        nexturn()
+
+    
+
+def jumporder():
+    
+    global order 
+    x = order[-1]
+    
+    order[-1] = order[0]
+
+    if len(order) > 2:
+        
+        for i in range(0, len(order)-2):
+            order[i] = order[i+1]
+        
+        order[-2] = x
 
     else:
-        sturn()
+
+       order[1] = x
+
+
+
+
     
-        
+
+
+
+
+def nexturn():
+
     
-    
+    jumporder()
 
-def nturn():
-    global nfold
-    global strt
-    global lastbet
-    global strt
-    global ndead
-    global nchips
-    
-    if (lastbet == 3) and (strt==0):
-            nextphase()
-#    elif (lastbet == 0) and (button == 3) and (strt == 0):
-#            nextphase()
-    if (nfold == 0) and (nchips != 0):
-
-        global gamephase
-       
+    #lastbet = pkr.button  
+    player_turn(order[0])
 
 
-        strt = 0     
+  
 
-        print nname + "'s turn... he got " + str(nchips) + " chips."
-        print "their turn"
-        global pot
-        global nbet
-        global bet
-        
-        global minimum
-        
-        if gamephase == "preflop":
-            
-            AI_preflop("n")
-
-        elif gamephase == "flop":
-
-            AI_flop("n")
-
-        elif gamephase == "turn":
-
-            AI_turn("n")
-
-        elif gamephase == "river":
-
-            AI_river("n")
-            
-        raw_input("")
-        eturn()
-
-    else:
-        eturn()
-
-
-def wturn():
-    global wfold
-    global strt
-    global lastbet
-    global strt
-    global wdead
-    global wchips
-    
-    if (lastbet == 2) and (strt==0):
-            nextphase()
-#    elif (lastbet == 0) and (button == 2) and (strt == 0):
-#            nextphase()
-    if (wfold == 0) and (wchips != 0):
-
-        global gamephase
-
-
-
-        strt = 0        
-
-        print wname + "'s turn... he got " + str(wchips) + " chips."
-        print "their turn"
-        global pot
-        global wbet
-        global bet
-        
-        global minimum
-        
-        if gamephase == "preflop":
-
-            AI_preflop("w")
-
-        elif gamephase == "flop":
-
-            AI_flop("w")
-
-        elif gamephase == "turn":
-
-            AI_turn("w")
-
-        elif gamephase == "river":
-
-            AI_river("w")
-            
-        raw_input("")
-        nturn()
-
-    else:
-        nturn()
 
 def flop():
-    global deck
-    global flp1
-    global flp2
-    global flp3
-    dealcard("flp1")
 
-    dealcard("flp2")
+    pkr.f1 = dealcard()
 
-    dealcard("flp3")
+    pkr.f2 = dealcard()
 
-    global bet
-    bet = 0
-    global wbet
-    wbet = 0
-    global nbet
-    nbet = 0
-    global ebet
-    ebet = 0
-    global sbet
-    sbet = 0
+    pkr.f3 = dealcard()
+
 
     global lastbet
 
 
     print 'The dealer deals the flop....'
     print ""
-    print "It's a " + card[flp1] + ", a " + card[flp2] + ", and a fucking " + card[flp3] + "!!!"
+    print "It's a " + card[pkr.f1] + ", a " + card[pkr.f2] + ", and a fucking " + card[pkr.f3] + "!!!"
     print ""
     raw_input("")
 
@@ -380,45 +288,26 @@ def flop():
     global strt
     strt = 1
     
-    if button == 1:
-        lastbet=2
-        wturn()
+    while not order[0] == pkr.button:
+        jumporder()
 
-    elif button == 2:
-        lastbet=3
-        nturn()
+    jumporder()
+    lastbet = pkr.button
 
-    elif button == 3:
-        lastbet=4
-        eturn()
-
-    elif button == 4:
-        lastbet=1
-        sturn()
-
+    nexturn()   
 
 #draw the turn card and puts it in table, calls the player turn, of who is after the button.
 def turn():
     global deck
     global trn
-    dealcard("trn")
-    global bet
-    bet = 0
-    global wbet
-    wbet = 0
-    global nbet
-    nbet = 0
-    global ebet
-    ebet = 0
-    global sbet
-    sbet = 0
+    pkr.trn = dealcard()
 
     global lastbet
 
 
     print "The dealer deals the turn..."
     print ""
-    print "It's a "+card[trn]+"... kewl."
+    print "It's a "+card[pkr.trn]+"... kewl."
     print ""
     raw_input("")
 
@@ -427,45 +316,27 @@ def turn():
     global strt
     strt = 1
 
-    if button == 1:
-        lastbet=2
-        wturn()
+    while not order[0] == pkr.button:
+        jumporder()
 
-    elif button == 2:
-        lastbet=3
-        nturn()
-        
-    elif button == 3:
-        lastbet=4
-        eturn()
+    jumporder()
+    lastbet = pkr.button
 
-    elif button == 4:
-        lastbet=1
-        sturn()
+    nexturn()
+
+
 
 
 def river():
-    global deck
-    global riv
-    dealcard("riv")
 
-    global bet
-    bet = 0
-    global wbet
-    wbet = 0
-    global nbet
-    nbet = 0
-    global ebet
-    ebet = 0
-    global sbet
-    sbet = 0
+    pkr.riv = dealcard()
 
     global lastbet
 
 
     print "The dealer deals the river..."
     print ""
-    print "It's a "+card[riv]+"... it's ok."
+    print "It's a "+card[pkr.riv]+"... it's ok."
     print ""
     raw_input("")
     
@@ -474,122 +345,70 @@ def river():
     global strt
     strt = 1
 
-    if button == 1:
-        lastbet=2
-        wturn()
+    while not order[0] == pkr.button:
+        jumporder()
 
-    elif button == 2:
-        lastbet=3
-        nturn()
+    jumporder()
+    lastbet = pkr.button
 
-    elif button == 3:
-        lastbet=4
-        eturn()
 
-    elif button == 4:
-        lastbet=1
-        sturn()
-
+    nexturn()
 
 def conclusion():
     print ""
     print "*** checking player's hands ***"
     raw_input("")
-    shand = 0
-    nhand = 0
-    whand = 0
-    ehand = 0
 
-    if sfold == 0:
-        print sname+" got:"
-        handvalue = checkhandvalue("s")
-        shand = handvalue
-        
-        print comment
-        print ""
+    winner = []
+    value = 0
 
-    if wfold == 0:
-        print wname+" got:"
-        handvalue = checkhandvalue("w")
-        whand = handvalue
-
-        print comment
-        print ""
     
-    if nfold == 0:
-        print nname+" got:"
-        handvalue = checkhandvalue("n")
-        nhand = handvalue
+    for i in range(0, len(order)):
+        if order[i].fold == 0:
 
-        print comment
-        print ""
-
-    if efold == 0:
-        print ename+" got:"
-        handvalue = checkhandvalue("e")
-        ehand = handvalue
-
-        print comment
+            print order[i].name+" got:"
+            print ""
+            print card[order[i].h1]
+            print card[order[i].h2]
+            print ""
+            handvalue = checkhandvalue(order[i])
 
 
-    results={"w": whand, "n": nhand, "e": ehand, "s": shand}
+            print comment
+            print ""
+
+            if handvalue > value:
+                winner = [i]
+                value = handvalue
+                
+            elif handvalue == value:
+                winner.append(i)
+                
+            
+         
+           
+
 
     print ""
     
-    winners = ""
-    winners += max(results.iteritems(), key=operator.itemgetter(1))[0]
 
-    global echips
-    global schips
-    global nchips
-    global wchips
+    if len(winner) == 1:
 
-    if len(winners) == 1:
-        if winners == "w":
-            print wname+" wins "+str(pot)+" chips."
-
-            wchips += pot
-
-        elif winners == "e":
-            print ename+" wins "+str(pot)+" chips."
-
-            echips+=pot
-
-        elif winners == "n":
-            print nname+" wins "+str(pot)+" chips."
-
-            nchips += pot
-
-        elif winners == "s":
-            print sname+" wins "+str(pot)+" chips."
-
-            schips+=pot
-
-    elif len(winners) > 1:
-        print "splitpot! " + pot/len(winners) + " for each."
-        for i in range(0, len(winners)-1):
-            if winners[i] == "w":
-                print wname
-
-                wchips += pot/len(winners)
-
-            elif winners[i] == "e":
-                print ename
-
-                echips += pot/len(winners)
-
-            elif winners[i] == "n":
-                print nname
-
-                nchips += pot/len(winners)
-
-            elif winners[i] == "s":
-                print sname
-
-                schips += pot/len(winners)
+        print order[winner[0]].name+" wins "+str(pkr.pot)+" chips."
+        order[winner[0]].chips += pkr.pot
 
 
 
+
+    elif len(winner) > 1:
+        print "splitpot! " + str(pkr.pot/len(winner))+ " for each."
+        for i in range(0, len(winner)):
+            print order[winner[i]].name
+            order[winner[i]].chips += pkr.pot/len(winner)
+
+            
+            
+    pkr.pot = 0
 
 
     print ""
@@ -597,7 +416,7 @@ def conclusion():
     raw_input("")
 
 
-    if schips <= 0:
+    if sp.chips <= 0:
         print ""
         print "Game Over."
         while schips <= 0:
@@ -612,207 +431,97 @@ def conclusion():
 #function called when players raise the bet. 's' stands for you, 'w' is the player on the left, 'n' in front, 'e' is on the right.
 def raisebet(player):
     global lastbet
-    global bet
-    global pot
-    global minimum
-    
 
-    
-    if player == "e":
-        
-        global ebet
-        global echips
-        plastbet = 4
-        pname = ename
-        pbet = ebet
+ 
 
-        pchips = echips
+    plastbet = 4
+    pname = player.name
+    pbet = player.bet
 
-    elif player == "w":
-        
-        global wbet
-        global wchips
-        plastbet = 2
-        pname = wname
-        pbet = wbet
+    pchips = player.chips
 
-        pchips = wchips
 
-    elif player == "n":
-        
-        global nbet
-        global nchips
-        plastbet = 3
-        pname = nname
-        pbet = nbet
-
-        pchips = nchips
-        
-    elif player == "s":
-        
-        global sbet       
-        global schips
-        plastbet = 1
-        pname = sname
-        pbet = sbet
-
-        pchips = schips
-
-    if pchips > bet-pbet:
+    if pchips > pkr.bet-pbet:
         
         lastbet = plastbet
-        bet += minimum
-        pot += (bet-pbet)
-        pchips -=(bet-pbet)
-        pbet=bet
-        afteraise(player, pchips, pbet)
-        print pname+" raises to "+str(bet)+" chips."
+        pkr.bet += pkr.minimum
+        pkr.pot += (pkr.bet-pbet)
+        pchips -=(pkr.bet-pbet)
+        pbet = pkr.bet
+        print pname+" raises to "+str(pkr.bet)+" chips."
         print ""
 
 
-    elif pchips <= bet-pbet:
+    elif pchips <= pkr.bet-pbet:
 
         lastbet = plastbet
-        pot += pchips
-        bet += pchips
+        pkr.pot += pchips
+        pkr.bet += pchips
         pbet += pchips
         pchips = 0
         print ""
-        print pname+" raises to ALL IN! ["+str(bet)+"]."
-        afteraise(player, pchips, pbet)
-    
-    
+        print pname+" raises to ALL IN! ["+str(pkr.bet)+"]."
 
+    
+    
+    player.chips = pchips
+    player.bet = pbet
+    lastbet = player
         
-
-def afteraise(player, pchips, pbet):
-    global bet
-    global pot
-    global minimum
-
-    if player == "w":
-        global wchips
-        global wbet
-        wchips = pchips
-        wbet = pbet
-
-    elif player == "n":
-        global nchips
-        global nbet
-        nchips = pchips
-        nbet = pbet
-
-    elif player == "e":
-        global echips
-        global ebet
-        echips = pchips
-        ebet = pbet
-
-    elif player == "s":
-        global schips
-        global sbet
-        schips = pchips
-        sbet = pbet
-
        
 def paycheck(player):
-    global bet
-    global pot
 
-    
-    if player == "w":
-        global wbet
-        global wchips
-        pchips=wchips
-        pbet=wbet
-        pname=wname
 
-    if player == "n":
-        global nbet
-        global nchips
-        pchips=nchips
-        pbet=nbet
-        pname=nname
+    pchips=player.chips
+    pbet=player.bet
+    pname=player.name
 
-    if player == "e":
-        global ebet
-        global echips
-        pchips=echips
-        pbet=ebet
-        pname=ename
 
-    if player == "s":
-        global sbet
-        global schips
-        pchips=schips
-        pbet=sbet
-        pname=sname
+    if (pkr.bet-player.bet) > player.chips:
 
-    if (bet-pbet) > pchips:
-
-        pot += pchips
-        pchips=0
+        pkr.pot += pplayer.chips
+        player.chips=0
         print ""
-        print pname+" goes ALL IN!"
+        print player.name+" goes ALL IN!"
         print ""
         
 
         
     
-    elif bet > pbet:
-            pchips -= (bet-pbet)
-            pot += (bet-pbet)
+    elif pkr.bet > pbet:
+            pchips -= (pkr.bet-pbet)
+            pkr.pot += (pkr.bet-pbet)
         
-            print pname+" pays "+str(bet-pbet)+" chips.\n"
-            pbet = bet
+            print pname+" pays "+str(pkr.bet-pbet)+" chips.\n"
+            pbet = pkr.bet
 
-    elif bet == pbet:
+    elif pkr.bet == pbet:
             print pname+" checks.\n"
 
-    afterpaycheck(player, pchips, pbet)
 
-def afterpaycheck(player, pchips, pbet):
-    if player == "n":
-        global nchips
-        global nbet
-        nchips = pchips
-        nbet = pbet
+    player.chips = pchips
+    player.bet = pbet
 
-    if player == "w":
-        global wchips
-        global wbet
-        wchips = pchips
-        wbet = pbet
 
-    if player == "e":
-        global echips
-        global ebet
-        echips = pchips
-        ebet = pbet
-
-    if player == "s":
-        global schips
-        global sbet
-        schips = pchips
-        sbet = pbet
-        
 def nextphase():
+    outs = 0
+    for i in range(len(order)):
 
-    if ((sfold == 1) or (schips <= 0)) and ((nfold == 1) or (nchips <= 0)) and ((wfold == 1) or (wchips <= 0)):
-        print ""
-        setprematureend()
-    if ((efold == 1) or (echips <= 0)) and ((nfold == 1) or (nchips <= 0)) and ((wfold == 1) or (wchips <= 0)):
-        print ""
-        setprematureend()
-    if ((sfold == 1) or (schips <= 0)) and ((efold == 1) or (echips <= 0)) and ((wfold == 1) or (wchips <= 0)):
-        print ""
-        setprematureend()
-    if ((efold == 1) or (echips <= 0)) and ((nfold == 1) or (nchips <= 0)) and ((sfold == 1) or (schips <= 0)):
+        outs += order[i].fold
+        
+        if order[i].chips <= 0:
+            outs +=1
+
+
+    if outs + 1 == len(order):
         print ""
         setprematureend()
 
         
-    global gamephase
+    pkr.bet = 0
+    for i in range(len(order)):
+        order[i].bet = 0
+
     
     if gamephase == "preflop":
                 flop()
@@ -825,8 +534,7 @@ def nextphase():
 
 def setprematureend():
 
-    global gamephase
-    
+
     if gamephase == "preflop":
                 dealcard("flp1")
                 dealcard("flp2")
@@ -867,16 +575,14 @@ def setprematureend():
 #function containing player options at his turn
     
 def options(action):
-        global schips
-        global pot
-        global bet
-        global sbet
+
+
         
         if action == "check":
-            if bet <= sbet:
+            if pkr.bet <= sp.bet:
                 print "You check."
                 print ""
-                wturn()
+                nexturn()
             else:
                 print "you can't check as there is a bet. fold or pay"
                 action = 0
@@ -889,38 +595,37 @@ def options(action):
 
         elif action == "pay":
             print ""
-            paycheck("s")
+            paycheck(sp)
             
             
-            wturn()
+            nexturn()
 
 
         elif action == "fold":
-                global sfold
-                sfold = 1
-                print "you fold"
+                sp.fold = 1
+                print "you fold."
                 print ""
-                wturn()
+                nexturn()
 
         elif action == "raise":
                 print ""
-                raisebet("s")
-                wturn()
+                raisebet(sp)
+                nexturn()
 
         elif action == "look table":
                 if gamephase == "preflop":
                     print "There is nothing to look."
 
                 elif gamephase == "flop":
-                    print "The flop is: "+card[flp1]+", "+card[flp2]+" and "+card[flp3]+"."
+                    print "The flop is: "+card[pkr.f1]+", "+card[pkr.f2]+" and "+card[pkr.f3]+"."
 
                 elif gamephase == "turn":
-                    print "Flop and turn: "+card[flp1]+", "+card[flp2]+", "+card[flp3]+" and "+card[trn]+"."
+                    print "Flop and turn: "+card[pkr.f1]+", "+card[pkr.f2]+" and "+card[pkr.f3]+card[pkr.trn]+"."
 
                 elif gamephase == "river":
-                    print "Five cards on table: "+card[flp1]+", "+card[flp2]+", "+card[flp3]+", "+card[trn]+" and "
+                    print "Five cards on table: "+card[pkr.f1]+", "+card[pkr.f2]+", "+card[pkr.f3]+card[pkr.trn]+" and "+card[pkr.riv]+"."
 
-                sturn()
+                nexturn()
 
         elif action == "bet":
                 print ""
@@ -928,42 +633,38 @@ def options(action):
                 while cash.isdigit() is not True:
                     cash = raw_input("Put away the whisky... how many chips?")
 
-
-                freebet("s", cash)
-
-                wturn()
+                
+                freebet(sp, cash)
+                
+                nexturn()
 
 
 
 def freebet(player, cash):
     global lastbet
-    global bet
-    global pot
-    if player == "s":
-        global schips
-        global sbet
 
-        cash = int(cash)
-        
-        if bet-sbet+cash < schips:
-            schips -= bet-sbet+cash
-            pot += bet-sbet+cash
-            sbet = cash+bet
-            bet = sbet
-            print ""
-            print sname+" bets "+str(bet-sbet+cash)+" chips!"
-            print ""
 
-        else:
+    cash = int(cash)
 
-            bet = sbet + schips
-            schips = 0
-            sbet = bet
-            print ""
-            print sname+" goes ALL IN!"
-            print ""
+    if pkr.bet - player.bet + cash < player.chips:
+        player.chips -= pkr.bet-player.bet+cash
+        pkr.pot += pkr.bet - player.bet+  cash
+        player.bet = cash+bet
+        pkr.bet = player.bet
+        print ""
+        print player.name+" bets "+str(pkr.bet-player.bet+cash)+" chips!"
+        print ""
 
-        lastbet = 1
+    else:
+
+        pkr.bet = player.bet + player.chips
+        player.chips = 0
+        player.bet = pkr.bet
+        print ""
+        print player.name+" goes ALL IN!"
+        print ""
+
+    lastbet = player
             
             
         
@@ -974,6 +675,8 @@ def freebet(player, cash):
 #AI-related hand value speculation routines, one for each of the game phases
 
 def checkhandpreflop(h, hh):
+
+    
     handvalue = 0
     if (h[1] == "A") and (hh[1] == "A"):
         handvalue += 30
@@ -1247,145 +950,72 @@ def checkhandriver(h, hh, t, tt, ttt, tu, riv):
 
 
 def blind():
-    global bet
-    global pot
-    global schips
-    global nchips
-    global wchips
-    global echips
-    global lastbet
-    global minimum
-    global sbet
-    global nbet
-    global wbet
-    global ebet
-    pot = 0
 
-    global button
-    if button == 4:
-        button = 1
-    else:
-        button +=1
+    pkr.pot = 0
+
+    
 
     global strt
     strt=1
 
-    bet = minimum
+
+
+    for i in range(len(order)-1):
+        if order[i].chips <= 0:
+            order[i].dead = 1
+            del order[i]
+
+
 
     deal()
     
-    if button == 1:
-        print ""
-        print sname+" is the dealer."
-        print ""
-        print wname + " pays " + str(minimum/2) + " chips."
-        
-        pot += minimum/2
-        
-        wchips -= minimum/2
-        wbet = minimum/2
+    while not order[0] == pkr.button:
+        jumporder()
 
-        print nname + " pays " + str(minimum) + " chips.\n"
-        
-        pot += minimum
-        
-        nchips -= minimum
-        nbet = minimum
-        lastbet=4
-        raw_input("")
 
-        eturn()
 
-    elif button ==2:
-        print ""
-        print wname+" is the dealer."
-        print ""
-        
-        print nname + " pays " + str(minimum/2) + " chips."
-        
-        pot += minimum/2
-        
-        nchips -= minimum/2
-        nbet = minimum/2
 
-        print ename + " pays " + str(minimum) + " chips.\n"
-        
-        pot += minimum
-        
-        echips -= minimum
-        ebet = minimum
-        lastbet=1
-        raw_input("")
-        
-        sturn()
+    jumporder()
+    pkr.button = order[0]
 
-    elif button ==3:
-        print ""
-        print nname+" is the dealer."
-        print ""
-        
-        print ename + " pays " + str(minimum/2) + " chips."
-        
-        pot += minimum/2
-        
-        echips -= minimum/2
-        ebet = minimum/2
 
-        print sname + " pays " + str(minimum) + " chips.\n"
-        
-        pot += minimum
-        
-        schips -= minimum
-        sbet = minimum
-        lastbet=2
-        raw_input("")
-        
-        wturn()
+    print ""
+    print order[0].name+" is the dealer."
+    print ""
+    jumporder()
+    print order[0].name + " pays " + str(pkr.minimum/2) + " chips."
+    
+    pkr.pot += pkr.minimum/2
+    
+    order[0].chips -= pkr.minimum/2
+    order[0].bet = pkr.minimum/2
 
-    elif button ==4:
-        print ""
-        print ename+" is the dealer."
-        print ""
-        
-        print sname + " pays " + str(minimum/2) + " chips."
-        
-        pot += minimum/2
-        
-        schips -= minimum/2
-        sbet = minimum/2
+    jumporder()
 
-        print wname + " pays " + str(minimum) + " chips.\n"
-        
-        pot += minimum
-        
-        wchips -= minimum
-        wbet = minimum
-        lastbet=3
-        raw_input("")
+    print order[0].name + " pays " + str(pkr.minimum) + " chips.\n"
+    
+    pkr.pot += pkr.minimum
+    pkr.bet = pkr.minimum
+    
+    order[0].chips -= pkr.minimum
+    order[0].bet = pkr.minimum
+    
+    lastbet= order[0]
+    raw_input("")
 
-        nturn()
+    
+    nexturn()
+
+
 
 def AI_preflop(player):
-        if player == "w":
-            h1 = wh1
-            h2 = wh2
-            pname = wname
-            foldz = wfold
-            pbet = wbet
+        h1 = player.h1
+        h2 = player.h2
+        pname = player.name
+        foldz = player.fold
+        pbet = player.bet
 
-        elif player == "n":
-            h1 = nh1
-            h2 = nh2
-            pname = nname
-            foldz = nfold
-            pbet = nbet
 
-        elif player == "e":
-            h1 = eh1
-            h2 = eh2
-            pname = ename
-            foldz = efold
-            pbet = ebet
 
         handvalue = checkhandpreflop(h1, h2)
         #if he will raise
@@ -1409,28 +1039,16 @@ def AI_preflop(player):
                 folds(player)
 
 def AI_flop(player):
-        if player == "w":
-            h1 = wh1
-            h2 = wh2
-            pname = wname
-            foldz = wfold
-            pbet = wbet
 
-        elif player == "n":
-            h1 = nh1
-            h2 = nh2
-            pname = nname
-            foldz = nfold
-            pbet = nbet
+        h1 = player.h1
+        h2 = player.h2
+        pname = player.name
+        foldz = player.fold
+        pbet = player.bet
+        
 
-        elif player == "e":
-            h1 = eh1
-            h2 = eh2
-            pname = ename
-            foldz = efold
-            pbet = ebet
 
-        handvalue = checkhandflop(wh1, wh2, flp1, flp2, flp3)
+        handvalue = checkhandflop(h1, h2, pkr.f1, pkr.f2, pkr.f3)
         #if he will raise
         will = randint(0,15)
         if handvalue+will > 38:
@@ -1452,28 +1070,13 @@ def AI_flop(player):
 
 
 def AI_turn(player):
-        if player == "w":
-            h1 = wh1
-            h2 = wh2
-            pname = wname
-            foldz = wfold
-            pbet = nbet
+        h1 = player.h1
+        h2 = player.h2
+        pname = player.name
+        foldz = player.fold
+        pbet = player.bet
 
-        elif player == "n":
-            h1 = nh1
-            h2 = nh2
-            pname = nname
-            foldz = nfold
-            pbet = wbet
-
-        elif player == "e":
-            h1 = eh1
-            h2 = eh2
-            pname = ename
-            foldz = efold
-            pbet = ebet
-
-        handvalue = checkhandturn(wh1, wh2, flp1, flp2, flp3, trn)
+        handvalue = checkhandturn(h1, h2, pkr.f1, pkr.f2, pkr.f3, pkr.trn)
         #if he will raise
         will = randint(0,15)
         if handvalue+will > 38:
@@ -1496,28 +1099,13 @@ def AI_turn(player):
 
             
 def AI_river(player):
-        if player == "w":
-            h1 = wh1
-            h2 = wh2
-            pname = wname
-            foldz = wfold
-            pbet = wbet
+        h1 = player.h1
+        h2 = player.h2
+        pname = player.name
+        foldz = player.fold
+        pbet = player.bet
 
-        elif player == "n":
-            h1 = nh1
-            h2 = nh2
-            pname = nname
-            foldz = nfold
-            pbet = nbet
-
-        elif player == "e":
-            h1 = eh1
-            h2 = eh2
-            pname = ename
-            foldz = efold
-            pbet = ebet
-
-        handvalue = checkhandriver(wh1, wh2, flp1, flp2, flp3, trn, riv)
+        handvalue = checkhandriver(h1, h2, pkr.f1, pkr.f2, pkr.f3, pkr.trn, pkr.riv)
         #if he will raise
         will = randint(0,15)
         if handvalue+will > 38:
@@ -1540,59 +1128,25 @@ def AI_river(player):
 
 def folds(player):
     
-        if player == "w":
-            global wfold
-            print wname+" folds."
-            wfold = 1
 
-        elif player == "n":
-            global nfold
-            print nname+" folds."
-            nfold = 1
+            print player.name+" folds."
+            player.fold = 1
 
-        elif player == "e":
-            global efold
-            print ename+" folds."
-            efold = 1
 
-        elif player == "s":
-            global sfold
-            print sname+" folds."
-            sfold = 1
-            
 def checkhandvalue(player):
         global comment
         comment = "Nothing."
-        if player == "s":
-                global sh2
-                global sh1
-                a = sh1
-                b = sh2
-                pname =sname
-        elif player == "e":
-                global eh1
-                global eh2
-                a = eh1
-                b = eh2
-                pname=ename
-        elif player == "w":
-                global wh1
-                global wh2
-                a = wh1
-                b = wh2
-                pname=wname
-        elif player == "n":
-                global nh1
-                global nh2
-                a = nh1
-                b = nh2
-                pname=nname
+
+        a = player.h1
+        b = player.h2
+        pname = player.name
+
 
         handvalue = 0
         
-        game = a+b+flp1+flp2+flp3+trn+riv
-        colors = a[0]+b[0]+flp1[0]+flp2[0]+flp3[0]+trn[0]+riv[0]
-        numbers = a[1]+b[1]+flp1[1]+flp2[1]+flp3[1]+trn[1]+riv[1]
+        game = a+b+pkr.f1+pkr.f2+pkr.f3+pkr.trn+pkr.riv
+        colors = a[0]+b[0]+pkr.f1[0]+pkr.f2[0]+pkr.f3[0]+pkr.trn[0]+pkr.riv[0]
+        numbers = a[1]+b[1]+pkr.f1[1]+pkr.f2[1]+pkr.f3[1]+pkr.trn[1]+pkr.riv[1]
         
         s = 0
         p = 0
@@ -1838,14 +1392,17 @@ def premature(player):
     blind()
 
 
-def dealcard(target):
-    global deck
+def dealcard():
+    x = randint(0,len(pkr.deck)-1)
+    _card = pkr.deck[x]
+    del pkr.deck[x]
+    
+    return _card
 
+def reset_folds():
 
-    exec("x = randint(0,len(deck)-1)") in globals()
-    exec(target+" = deck[x]") in globals()
-    del deck[x]
-
+    for i in range(len(order)-1):
+        order[i].fold = 0
 
 
                
