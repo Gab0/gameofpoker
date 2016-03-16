@@ -2,10 +2,12 @@
 from random import randint,randrange
 import operator
 
-names = ['Freddie', 'Suzanne', 'Wellington', 'Roberts', 'Spacely', 'John', 'Ruanito', 'Chavez', 'Wilson', 'Ford', 'Nikolai', 'Samara', 'Fernandita', 'Nikki', 'Andersen', 'Magda']
+import neuronal
+names = ['Freddie', 'Suzanne', 'Wellington', 'Roberts', 'Spacely', 'John', 'Ruanito', 'Chavez', 'Wilson', 'Ford', 'Nikolai', 'Samara', 'Fernandita', 'Nikki', 'Andersen', 'Magda',
+         'Rutherford', 'Dawkins', 'Rosenblatt', 'Elvis', 'Schapire', 'Freund', 'Grossberg', 'Collins', 'Patton', 'Albert', 'Klein', 'Hankel', 'Hilbert']
 
 GAME = True
-
+version = "v0.6"
 class player:
 
     def __init__(self, name = 'zero'):
@@ -78,7 +80,9 @@ class player:
             return 1
         else:
             return 0
-        
+
+    def Fold(self):
+        self.fold=1
 
 class AI_player(player):
     def __init__(self):
@@ -95,9 +99,36 @@ class AI_player(player):
         self.think()
 
         input("")
-
+    def Card2int(self,card):
+        CVT = {"e":0.2,"p":0.4,"o":0.6,"c":0.8,"T":10,"J":11,"Q":12,"K":13,"A":14}
+        try:
+            return CVT[card]
+        except:
+            return int(card)
+        
+        
     def think(self):
-        self.raisebet()
+        Senses = [self.chips/pkr.buyin]
+
+        for i in range(len(self.HandCards)):
+            Senses.append(self.Card2int(self.HandCards[i][0]))
+            Senses.append(self.Card2int(self.HandCards[i][1]))
+        for i in range(len(pkr.TableCards)):
+            Senses.append(self.Card2int(pkr.TableCards[i][0]))
+            Senses.append(self.Card2int(pkr.TableCards[i][1]))
+        while len(Senses) < 11:
+            Senses.append(0)
+        
+        
+        Brain = neuronal.think(Senses)
+        print("[AI debug info] %i&%i" % (Brain[0],Brain[1]))
+        if Brain[0] < 1200:
+            self.Fold()
+        if Brain[0] > Brain[1]:
+            self.raisebet()
+        else:
+            self.paycheck()
+
         return
         
 class Human_player(player):
@@ -118,11 +149,12 @@ class Human_player(player):
         print("Current bet is "+str(pkr.bet)+" chips.\n")
         print("You have already bet "+str(self.bet)+" chips this round.\n")
         self.options()
-        nexturn()
         print("")
         
     def options(self):
-        Prompt = "do?... [fold/check/pay/raise/bet/look table]"
+        Chk = "pay"
+        if pkr.bet==self.bet: Chk = "check"
+        Prompt = "do?... [fold/%s/raise/bet/look table]" % Chk
         action=0
   
         while not (action == "fold") and not(action =="check") and not (action=="pay") and not (action=="raise") and not (action=="bet") and not (action=="look table"):
@@ -143,7 +175,7 @@ class Human_player(player):
                 self.paycheck()
 
             elif action == "fold":
-                    sp.fold = 1
+                    self.Fold()
                     print("you fold.")
                     print("")
 
@@ -164,9 +196,6 @@ class Human_player(player):
                    
                     self.raisebet(cash=int(cash))
                     
-
-
-
         
 class game:
 
@@ -189,6 +218,8 @@ class game:
 
         self.whoplays = 0
 
+        self.buyin = 1500
+        
         self.phase = 0
     def dealcard(self):
         x = randint(0,len(pkr.deck)-1)
@@ -217,7 +248,7 @@ while len(players) < NP:
     players.append(AI_player())
 
 
-print("Welcome to satanic poker table, %s." % players[0])
+print("Welcome to the satanic poker table %s, %s." % (version, players[0].name) )
 print("")
 print("You will be seated in a four-player NLHE tournament table.")
 input("")
@@ -282,6 +313,7 @@ def deal():
             
 
     pkr.gamephase = 0
+    pkr.TableCards = []
     
     print("dealing...")
 
@@ -292,49 +324,53 @@ def deal():
 
 def player_turn(N):
     player = players[N]
-    if pkr.lastbet == N:
-        nextphase()
     if player.chips > 0:
         if not player.fold:
             player.plays()
-    nexturn()
 
-   
 
 def nextplayer():
     pkr.whoplays += 1
     if pkr.whoplays >= len(players):
         pkr.whoplays = 0
-    
-    
-
-def nexturn():
-    pkr.whoplays += 1
-    if pkr.whoplays >= len(players):
-        pkr.whoplays = 0
-    
-
-    #lastbet = pkr.button  
-    player_turn(pkr.whoplays)
-    
+ 
+   
 def change_gamephase():
-    phasenames = ['flop', 'turn', 'river']
-    if not pkr.phase: x=3
-    else: x=1
+    outs = 0
+    for p in players:
+        outs += p.fold
+        p.bet=0
+        if not (p.dead) and (p.chips <= 0):      
+            outs +=1
+
+
+    if outs + 1 == len(players):
+        print("")
+        setprematureend()
+        
+    pkr.bet = 0
+    pkr.lastbet = None
     
-    print('Dealer deals the %s....' % phasenames[currentphase])
+    phasenames = ['preflop','flop', 'turn', 'river']
+    if not pkr.gamephase: x=3
+    else: x=1
+    pkr.gamephase +=1
+
+    if pkr.gamephase >3:
+        conclusion()
+        return
+    print('Dealer deals the %s....' % phasenames[pkr.gamephase])
     for z in range(x):
         print("")
         pkr.TableCards.append(pkr.dealcard())
+        print("%s in da table!" % card[pkr.TableCards[-1]])
         print("")
     input("")
-    pkr.phase +=1
+    
 
     pkr.start = 1
 
     pkr.whoplays = pkr.button
-
-    nexturn()
 
 
 def conclusion():
@@ -402,46 +438,19 @@ def conclusion():
 
 
 
-def nextphase():
-    outs = 0
-    for p in players:
-        outs += p.fold
-        if not (p.dead) and (p.chips <= 0):      
-            outs +=1
-
-
-    if outs + 1 == len(order):
-        print("")
-        setprematureend()
-
-        
-    pkr.bet = 0
-    for i in range(len(order)):
-        order[i].bet = 0
-
-    
-    if gamephase == "preflop":
-                flop()
-    elif gamephase == "flop":
-                turn()
-    elif gamephase == "turn":
-                river()
-    elif gamephase == "river":
-                conclusion()
-
 def setprematureend():
+    print('Game ends now!')
 
-
-    if gamephase == "preflop":
+    if pkr.gamephase == 0:
                 for i in range(5): pkr.deal2table()
                 conclusion()
-    elif gamephase == "flop":
+    elif pkr.gamephase == 1:
                 for i in range(2): pkr.deal2table()
                 conclusion()
-    elif gamephase == "turn":
+    elif pkr.gamephase == 2:
                 pkr.deal2table()
                 conclusion()
-    elif gamephase == "river":
+    elif pkr.gamephase == 3:
                 conclusion()
     
 
@@ -897,8 +906,8 @@ def checkhandvalue(player):
         global comment
         comment = "Nothing."
 
-        a = player.h1
-        b = player.h2
+        a = player.HandCards[0]
+        b = player.HandCards[1]
         pname = player.name
 
 
@@ -1158,10 +1167,16 @@ def premature(player):
 
     blind()
 
-
-while GAME == True:               
+def gameloop():
     prepare()
- 
     deal()
     blind()
-    nexturn()
+    while pkr.gamephase<4:
+        nextplayer()
+        
+        if pkr.lastbet == pkr.whoplays:
+            change_gamephase()
+        else:
+            player_turn(pkr.whoplays)
+while GAME == True:               
+    gameloop()
