@@ -3,6 +3,8 @@ from random import randint,randrange
 import operator
 
 import neuronal
+from neuronalIO import *
+
 names = ['Freddie', 'Suzanne', 'Wellington', 'Roberts', 'Spacely', 'John', 'Ruanito', 'Chavez', 'Wilson', 'Ford', 'Nikolai', 'Samara', 'Fernandita', 'Nikki', 'Andersen', 'Magda',
          'Rutherford', 'Dawkins', 'Rosenblatt', 'Elvis', 'Schapire', 'Freund', 'Grossberg', 'Collins', 'Patton', 'Albert', 'Klein', 'Hankel', 'Hilbert']
 
@@ -88,6 +90,12 @@ class AI_player(player):
     def __init__(self):
         player.__init__(self)
 
+        
+        Z = neuronal.grabAbrain()
+        self.brain_Weights = Z[0] 
+        self.brain_Thresholds = Z[1]
+        
+        
 
     def plays(self):
         
@@ -120,8 +128,9 @@ class AI_player(player):
             Senses.append(0)
         
         
-        Brain = neuronal.think(Senses)
-        print("[AI debug info] %i&%i" % (Brain[0],Brain[1]))
+        Brain = neuronal.think(Senses, Weights = self.brain_Weights,
+                                       Thresholds = self.brain_Thresholds)
+        print("[AI debug info] %i & %i" % (Brain[0],Brain[1]))
         if Brain[0] < 1200:
             self.Fold()
         if Brain[0] > Brain[1]:

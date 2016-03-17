@@ -2,6 +2,12 @@
 
 #import mlxtend.classifier import NeuralNetMLP
 import random
+from neuronalIO import *
+import os
+
+stdThresholdSize = [11,23,2]
+stdWeightSize = [(11,23),(23,2)]
+
 
 class neuron():
     def __init__(self,threshold):
@@ -51,7 +57,41 @@ def setSynapses(layer_from,layer_to,FIXED):
             S.append(synapse(X,layer_from[F],layer_to[T]))    
     return S
 
-def think(IN):
+
+def genWeights(size=stdWeightSize):
+    #size example = [(3,6),(5,3)]
+    Weights = []
+
+    for I in range(len(size)):#number of synaptic layers.
+        Layer = []
+        for K in range(size[I][0]):#number of From instances.
+            Layer.append([])
+            for Z in range(size[I][1]):#number of To instances.
+                Layer[K].append(random.random())
+        Weights.append(Layer)
+        
+    return Weights
+
+def genThresholds(MaxValue, size=stdThresholdSize):
+    #size example = [3, 5, 6]
+    Thresholds = []
+
+    for I in range(len(size)):#number of Neuronal layers.
+        Layer = []
+        for K in range(size[I]):#size of layer.
+            Layer.append(random.randrange(MaxValue))
+        Thresholds.append(Layer)
+
+    return Thresholds
+
+
+def think(IN, Weights = genWeights(),
+              Thresholds = genThresholds(7)):
+    #As for the project is right now, with 11 inputs/23 hidden/2 outputs;
+    #the Weights array is a [[[11*[23]],[[23*[2]]] array of
+    #floats between 0 and 1.
+
+    #the Thresholds array is [[*11*],[*23*],[*2*]]
     #setup.
     Li = []
     for i in range(len(IN)): Li.append(neuron(random.randrange(3)))
@@ -90,7 +130,19 @@ def think(IN):
 
     return result
 
+def grabAbrain():
+    files = os.listdir('brain')
+    files.append("R")
 
+    K = random.choice(files)
 
+    if K == "R":
+        W = genWeights()
+        T = genThresholds(7)
+    else:
+        FromFile = load_brain(K)
+        W = FromFile[0]
+        T = FromFile[1]
+    return [W,T]
 
-#print(think([0,0,0,0,0,0,0,0,0,0,0]))
+    
