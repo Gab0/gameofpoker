@@ -5,8 +5,8 @@ import random
 from neuronalIO import *
 import os
 
-stdThresholdSize = [11,23,2]
-stdWeightSize = [(11,23),(23,2)]
+stdThresholdSize = [11, 23, 2]
+stdWeightSize = [(11, 23), (23, 2)]
 
 
 class neuron():
