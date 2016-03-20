@@ -8,7 +8,7 @@ computer players
 
 The main objective of this repository is to employ a neural network to play poker.
 The schemes are on very early development stage, I'm currently working on a good
-learning mechanism. As players, these NNs goes pratically random.
+learning mechanism. As players, these NNs go full random.
 
 
 
@@ -16,5 +16,5 @@ learning mechanism. As players, these NNs goes pratically random.
 
 license
 =======
-
+	
 GPL.
