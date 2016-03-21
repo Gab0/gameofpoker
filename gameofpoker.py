@@ -4,7 +4,7 @@ import operator
 import sys
 
 import neuronal
-from neuronalIO import *
+
 
 names = ['Freddie', 'Suzanne', 'Wellington', 'Roberts', 'Spacely',
          'John', 'Ruanito', 'Chavez', 'Wilson', 'Ford', 'Nikolai',
@@ -94,15 +94,13 @@ class player():
         self.fold = 1
         # pkr.checkSurvival()
 
-        
+
 class AI_player(player):
 
     def __init__(self):
         player.__init__(self)
 
-        Z = neuronal.grabAbrain()
-        self.brain_Weights = Z[0]
-        self.brain_Thresholds = Z[1]
+        self.Brain = neuronal.NeuralNetwork()
 
     def plays(self):
 
@@ -132,11 +130,11 @@ class AI_player(player):
         for i in range(len(pkr.TableCards)):
             Senses.append(self.Card2int(pkr.TableCards[i][0]))
             Senses.append(self.Card2int(pkr.TableCards[i][1]))
-        while len(Senses) < 11:
+        while len(Senses) < 15:
             Senses.append(0)
 
-        Brain = neuronal.think(Senses, Weights=self.brain_Weights,
-                               Thresholds=self.brain_Thresholds)
+        Brain = self.Brain.think(Senses)
+
         print("[AI debug info] %i & %i" % (Brain[0], Brain[1]))
         if Brain[0] < 1200:
             self.Fold()
@@ -272,10 +270,10 @@ class game:
                 if not self.checkSurvival():
                     break
     def checkSurvival(self):
-        
+
         Survivors = []
         for P in players:
-            
+
             if not P.dead and not P.fold:
                 Survivors.append(P)
         if len(Survivors) == 1:
@@ -327,6 +325,13 @@ print()
 
 # card name content. 'e' stands for spades, 'p' for clubs, 'o' for
 # diamonds, and 'c' for hearts...
+ColorNames = {'e': 'Spades', 'p': 'Clubs',
+              'o': 'Diamonds', 'c': 'Hearts'}
+NumberNames = {'A': 'Ace', '2': 'Two', '3': 'Three', '4': 'Four',
+               '5': 'Five', '6': 'Six', '7': 'Seven', '8': 'Eight',
+               '9': 'Nine', 'T': 'Ten', 'J': 'Jack', 'Q': 'Queen',
+               'K': 'King'}
+
 card = {'eA': 'Ace of Spades', 'pA': 'Ace of Clubs',
         'oA': 'Ace of Diamonds', 'cA': 'Ace of Hearts',
         'eK': 'King of Spades', 'pK': 'King of Clubs',
@@ -361,6 +366,16 @@ pot = 0
 
 deck = None
 
+def prepare():
+    pkr.pot = 0
+
+    print("* Starting round %i. *" % pkr.roundcount)
+    print("")
+    pkr.strt = 1
+
+    for player in players:
+        if player.chips <= 0:
+            player.dead = 1
 
 # function starts the round and deal the cards.
 def deal():
@@ -377,7 +392,7 @@ def deal():
         player.fold = 0
         if not player.dead:
             print("dealing cards to %s" % player.name)
-            for x in range(2):                
+            for x in range(2):
                 player.HandCards.append(pkr.dealcard())
                 print(player.HandCards[x])
 
@@ -409,9 +424,9 @@ def nextplayer():
 def change_gamephase():
     survivors = []
     for p in players:
-         p.bet = 0
+        p.bet = 0
     pkr.bet = 0
-    pkr.lastbet = None
+    pkr.lastbet = pkr.button
 
     phasenames = ['preflop', 'flop', 'turn', 'river']
     if not pkr.gamephase:
@@ -434,7 +449,7 @@ def change_gamephase():
     pkr.start = 1
 
     pkr.whoplays = pkr.button
-
+    nextplayer()
 
 def conclusion():
     print("")
@@ -453,6 +468,7 @@ def conclusion():
                 print(card[C])
 
             print("")
+            handvalue = checkhandvalue(player)
             try:
                 handvalue = checkhandvalue(player)
             except:
@@ -473,7 +489,7 @@ def conclusion():
             elif handvalue == value:
                 winner.append(player)
     endgame(winner)
-    
+
 def endgame(winner):
     print("")
 
@@ -491,7 +507,7 @@ def endgame(winner):
     pkr.TableCards = []
     for player in players:
         player.HandCards = []
-        
+
     print("")
     print("")
     WaitInput()
@@ -504,9 +520,9 @@ def endgame(winner):
     Go = []
     for player in players:
         player.fold = 0
-        if not player.dead:
+        if not player.dead and not player.chips < 0:
             Go.append(player)
-        
+
     if len(Go) == 1:
         print("")
         print("Game Over. %s wins at round %i." % (Go[0].name,pkr.roundcount))
@@ -805,19 +821,6 @@ def checkhandriver(h, hh, t, tt, ttt, tu, riv):
     handvalue = randint(0, 15)
     return handvalue
 
-
-def prepare():
-    pkr.pot = 0
-
-    print("* Starting round %i. *" % pkr.roundcount)
-    print("")
-    pkr.strt = 1
-
-    for player in players:
-        if player.chips <= 0:
-            player.dead = 1
-
-
 def blind():
 
     pkr.whoplays = pkr.button
@@ -867,6 +870,10 @@ def checkhandvalue(player):
     pname = player.name
 
     handvalue = 0
+
+    GOTflush = 0
+    GOTsequence = 0
+    GOTstraightflush = 0
 
     cardpool = player.HandCards + pkr.TableCards
 
@@ -952,7 +959,45 @@ def checkhandvalue(player):
     xit = str(n2) + str(n3) + str(n4) + str(n5) + str(n6) + str(n7) + \
         str(n8) + str(n9) + str(T) + str(J) + str(Q) + str(K) + str(A)
     xit = xit[::-1]
-    if "4" in xit:
+
+    NumberSequence = ['A', '2', '3', '4', '5', '6', '7', '8', '9', 'T',
+                      'J', 'Q', 'K', 'A']
+
+    # check for sequences on cardpool.
+    for N in range(len(NumberSequence) - 5):
+        CandidateSequence = ""
+        for x in range(5):
+            CandidateSequence += NumberSequence[N + x]
+
+        if containsAll(unumbers, CandidateSequence):
+            GOTsequence = "%s%s" % (NumberSequence[N], NumberSequence[N+5])
+
+
+    # check for flushs on cardpool.
+    Color = {0: "c", 1: "p", 2: "s", 3: "o"}
+    Carray = [c,p,s,o]
+    for i in range(len(Carray)):
+        if Carray[i] > 4:
+            GOTflush = Color[i]
+
+    # check for straight flush on cardpool.
+    if GOTflush and GOTsequence:
+        SFRequiredCards = []
+        for C in range(NumberSequence.index(GOTsequence[0]),
+                       NumberSequence.index(GOTsequence[1])):
+            SFRequiredCards.append("%s%s" % (GOTflush,NumberSequence[C]))
+
+        if set(SFRequiredCards).issubset(set(cardpool)):
+            GOTstraightflush = GOTflush+GOTsequence
+
+
+    if GOTstraightflush:
+        comment = "Straight flush! %s to %s, of %s." % (NumberNames[GOTsequence[0]],
+                                                        NumberNames[GOTsequence[1]],
+                                                        ColorNames[GOTflush])
+        handvalue = 1800 + NumberSequence.index[GOTsequence] * 10
+
+    elif "4" in xit:
 
         pos = xit.index('4')
         comment = "Quartet of " + poscard[pos] + "'s."
@@ -973,52 +1018,15 @@ def checkhandvalue(player):
         deuce = 13 - pos2
         handvalue += deuce
 
-    elif (c > 4) or (p > 4) or (s > 4) or (o > 4):
-
-        comment = "Flush!"
+    elif GOTflush:
+        comment = "Flush of %s" % ColorNames[GOTflush]
         handvalue += 1000
 
-    elif containsAll(unumbers, 'TJQKA') == 1:
+    elif GOTsequence:
+        comment = "Sequence... %s to %s" % (NumberNames[GOTsequence[0]],
+                                            NumberNames[GOTsequence[1]])
+        handvalue = 510 + NumberSequence.index(GOTsequence[0]) * 10
 
-        comment = "Sequence... Ten to Ace"
-        handvalue = 600
-
-    elif containsAll(unumbers, "9TJQK") == 1:
-
-        comment = "Sequence... Nine to Kings"
-        handvalue = 590
-    elif containsAll(unumbers, "89TJQ") == 1:
-
-        comment = "Sequence... Eight to Queens"
-        handvalue = 580
-    elif containsAll(unumbers, "789TJ") == 1:
-
-        comment = "Sequence... Seven to Jack"
-        handvalue = 570
-    elif containsAll(unumbers, "6789T") == 1:
-
-        comment = "Sequence... Six to Ten"
-        handvalue = 560
-    elif containsAll(unumbers, "56789") == 1:
-
-        comment = "Sequence... Five to Nine"
-        handvalue = 550
-    elif containsAll(unumbers, "45678") == 1:
-
-        comment = "Sequence Four to Eight"
-        handvalue = 540
-    elif containsAll(unumbers, "34567") == 1:
-
-        comment = "Sequence... Three to Seven"
-        handvalue = 530
-    elif containsAll(unumbers, "23456") == 1:
-
-        comment = "Sequence... Two to Six"
-        handvalue = 520
-    elif containsAll(unumbers, "A2345") == 1:
-
-        comment = "Sequence... A to Five"
-        handvalue = 510
 
     elif "3" in xit:
         pos = xit.index('3')
@@ -1107,5 +1115,5 @@ def premature(player):
     blind()
 
 
-while GAME == True:
+while pkr.roundcount<1:
     pkr.gameloop()
