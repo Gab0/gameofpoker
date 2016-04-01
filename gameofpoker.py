@@ -1,9 +1,21 @@
 #!/bin/python
-from random import randint, randrange
+
+#######################################################################
+#                                                                     #
+# gameofpoker, a text-based poker simulator made to be fun (?)        #
+# and to serve as a framework for development of exotic               #
+# neural networks which will power the dumb intelligence of the       #
+# computer players. For minimal playability, each player needs        #
+# to be initialized (pre-trained) on its debut, please wait.          #
+#                                                                     #
+#######################################################################
+
+from random import randint, randrange, choice
 import operator
 import sys
+import time
 
-import neuronal
+from Neuronal import neuronal, utils
 
 
 names = ['Freddie', 'Suzanne', 'Wellington', 'Roberts', 'Spacely',
@@ -14,7 +26,7 @@ names = ['Freddie', 'Suzanne', 'Wellington', 'Roberts', 'Spacely',
          'Klein', 'Hankel', 'Hilbert']
 
 GAME = True
-version = "v0.6"
+version = "v0.7"
 
 
 class player():
@@ -22,6 +34,7 @@ class player():
     def __init__(self, name='zero'):
         self.chips = 1500
         self.bet = 0
+        self.Brain = 0
 
         if name == 'zero':
             x = randint(0, len(names) - 1)
@@ -40,9 +53,6 @@ class player():
         self.fold = 0
 
         self.N = len(players)
-
-    def getabrain(self):
-        print('dificil')
 
     def paycheck(self):
         if (pkr.bet - self.bet) > self.chips:
@@ -100,7 +110,7 @@ class AI_player(player):
     def __init__(self):
         player.__init__(self)
 
-        self.Brain = neuronal.NeuralNetwork()
+        self.Brain = neuronal.NeuralNetwork(name=self.name)
 
     def plays(self):
 
@@ -122,23 +132,24 @@ class AI_player(player):
             return int(card)
 
     def think(self):
-        Senses = [self.chips / pkr.buyin]
+        Senses = [(self.chips / (pkr.bet + 1)) / 10]
 
         for i in range(len(self.HandCards)):
-            Senses.append(self.Card2int(self.HandCards[i][0]))
+            Senses.append(self.HandCards[i][0])
             Senses.append(self.Card2int(self.HandCards[i][1]))
         for i in range(len(pkr.TableCards)):
-            Senses.append(self.Card2int(pkr.TableCards[i][0]))
+            Senses.append(pkr.TableCards[i][0])
             Senses.append(self.Card2int(pkr.TableCards[i][1]))
         while len(Senses) < 15:
             Senses.append(0)
 
         Brain = self.Brain.think(Senses)
-
+        print("[AI debug info] VChips = %i" % Senses[0])
         print("[AI debug info] %i & %i" % (Brain[0], Brain[1]))
-        if Brain[0] < 1200:
+        
+        if not Brain[0] + Brain[1]:
             self.Fold()
-        if Brain[0] > Brain[1]:
+        elif Brain[0] + Brain[1] == 2:
             self.raisebet()
         else:
             self.paycheck()
@@ -238,6 +249,17 @@ class game:
 
         self.phase = 0
 
+    def NewGame(self):
+        self.__init__()
+
+        global players
+        players = []
+        
+        if not Automatic:
+            players = [Human_player(name=input('Your name, sir?'))]
+        while len(players) < NP:
+            players.append(AI_player())
+        
     def dealcard(self):
         x = randint(0, len(pkr.deck) - 1)
         _card = self.deck[x]
@@ -268,7 +290,8 @@ class game:
             else:
                 player_turn(self.whoplays)
                 if not self.checkSurvival():
-                    break
+                    return
+                
     def checkSurvival(self):
 
         Survivors = []
@@ -277,11 +300,12 @@ class game:
             if not P.dead and not P.fold:
                 Survivors.append(P)
         if len(Survivors) == 1:
-            print("*** checking survivors: True ***")
-            print(Survivors)
-            for P in players:
-                print("player %s debug: Fold=%i;Dead=%i;Chips=%i" %
-                      (P.name,P.fold,P.dead,P.chips))
+            ## debug stuff:
+            # print("*** checking survivors: True ***")
+            # print(Survivors)
+            # for P in players:
+            #    print("player %s debug: Fold=%i;Dead=%i;Chips=%i" %
+            #          (P.name,P.fold,P.dead,P.chips))
             endgame(Survivors)
             return 0
         else:
@@ -294,16 +318,14 @@ def WaitInput():
         input("")
 NP = 4
 
-pkr = game()
 Automatic = 0
-players = []
 if len(sys.argv) > 1:
     if not sys.argv[1] == '--automatic' and not sys.argv[1] == '-a':
         Automatic = 1
-if not Automatic:
-    players = [Human_player(name=input('Your name, sir?'))]
-while len(players) < NP:
-    players.append(AI_player())
+        
+pkr = game()
+pkr.NewGame()
+
 
 if not Automatic:
     print("Welcome to the satanic poker table %s, %s." %
@@ -359,9 +381,6 @@ card = {'eA': 'Ace of Spades', 'pA': 'Ace of Clubs',
         'e2': 'Two of Spades', 'p2': 'Two of Clubs',
         'o2': 'Two of Diamonds', 'c2': 'Two of Hearts'}
 
-
-time = 0
-
 pot = 0
 
 deck = None
@@ -373,7 +392,11 @@ def prepare():
     print("")
     pkr.strt = 1
 
+    pkr.startingRoundChips = []
+    
+        
     for player in players:
+        pkr.startingRoundChips.append(player.chips)
         if player.chips <= 0:
             player.dead = 1
 
@@ -503,6 +526,10 @@ def endgame(winner):
             print(winner[i].name)
             winner[i].chips += pkr.pot / len(winner)
 
+    for p in range(len(players)):
+        if players[p].Brain:
+            players[p].Brain.feedback(players[p].chips-pkr.startingRoundChips[p], 0)
+            
     pkr.pot = 0
     pkr.TableCards = []
     for player in players:
@@ -525,10 +552,17 @@ def endgame(winner):
 
     if len(Go) == 1:
         print("")
-        print("Game Over. %s wins at round %i." % (Go[0].name,pkr.roundcount))
-        exit()
-
-
+        for P in players:
+            if P.Brain:
+                if P in Go:
+                    P.Brain.finalFeedback(1)
+                else:
+                    P.Brain.finalFeedback(0)
+        print("Game Over. %s wins at round %i." % (Go[0].name,
+                                                   pkr.roundcount))
+        time.sleep(10)
+        pkr.NewGame()
+        
 
 def setprematureend():
     print('Game ends now!')
@@ -995,7 +1029,7 @@ def checkhandvalue(player):
         comment = "Straight flush! %s to %s, of %s." % (NumberNames[GOTsequence[0]],
                                                         NumberNames[GOTsequence[1]],
                                                         ColorNames[GOTflush])
-        handvalue = 1800 + NumberSequence.index[GOTsequence] * 10
+        handvalue = 1800 + NumberSequence.index(GOTsequence[0]) * 10
 
     elif "4" in xit:
 
@@ -1083,37 +1117,7 @@ def checkhandvalue(player):
 
 
 def containsAll(str, set):
-
     return 0 not in [c in str for c in set]
 
-
-def premature(player):
-    if player == "w":
-        global wchips
-        wchips += pot
-        pname = wname
-
-    if player == "e":
-        global echips
-        echips += pot
-        pname = ename
-
-    if player == "n":
-        global nchips
-        nchips += pot
-        pname = nname
-
-    if player == "s":
-        global schips
-        schips += pot
-        pname = sname
-
-    print("")
-    print(pname + " wins " + pot + " chips.")
-    print("")
-
-    blind()
-
-
-while pkr.roundcount<1:
+while True:
     pkr.gameloop()
