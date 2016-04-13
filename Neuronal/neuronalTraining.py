@@ -9,7 +9,17 @@ def Card2int(card):
         return CVT[card]
     except:
         return int(card)
-    
+
+def progressBar(percent):
+    bV = percent / 100 * 30
+    bV = round(bV)
+
+    HASH = bV * "#"
+    VOID = (30 - bV) * " "
+
+    bar = "[%s%s] %f%%" % (HASH, VOID, round(percent))
+    print(bar)
+        
 def PreHeat(network, MaxRun, retries=166):
     Debug = 0
     
@@ -25,8 +35,9 @@ def PreHeat(network, MaxRun, retries=166):
     for R in range(MaxRun):
         RET = retries
         for GamePhase in range(4):
-            print("Training for %s of run %i;" %\
-                  (Phasenames[GamePhase], R + 1))
+            if Debug:
+                print("Training for %s of run %i;" %\
+                      (Phasenames[GamePhase], R + 1))
             Again = 1
             while Again:
                 if RET < 0:
@@ -108,6 +119,12 @@ def PreHeat(network, MaxRun, retries=166):
                                RET, modifyOutput, Raise, Check, Fold))
                     network.feedback(FeedBack, modifyOutput)
             RET += 85
-            print("Partial finish. %i %i %i" % (Raise, Check, Fold))
-    print("PreHeat concluded.")
+            
+            if Debug:
+                print("Partial finish. %i %i %i" % (Raise, Check, Fold))
+            else:
+                progressBar((GamePhase+1 + 4*R)  / (MaxRun*4) * 100)
+    if Debug:            
+        print("PreHeat concluded.")
+            
     return 1

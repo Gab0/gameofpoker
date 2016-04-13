@@ -9,13 +9,11 @@
 # to be initialized (pre-trained) on its debut, please wait.          #
 #                                                                     #
 #######################################################################
-
-from random import randint, randrange, choice
-import operator
 import sys
 import time
+from random import randint
 
-from Neuronal import neuronal, utils
+from Neuronal import neuronal
 
 
 names = ['Freddie', 'Suzanne', 'Wellington', 'Roberts', 'Spacely',
@@ -26,7 +24,7 @@ names = ['Freddie', 'Suzanne', 'Wellington', 'Roberts', 'Spacely',
          'Klein', 'Hankel', 'Hilbert']
 
 GAME = True
-version = "v0.7"
+version = "v0.8"
 
 
 class player():
@@ -168,8 +166,17 @@ class Human_player(player):
         action = 0
         print("")
 
-        print("your turn... you got %s and %s.\n" %
+        print("your turn...\n")
+        print("your HAND:      %s      %s  \n " %
               (card[self.HandCards[0]], card[self.HandCards[1]]))
+        if len(pkr.TableCards):
+            print("the TABLE: %s   %s   %s   %s   %s\n" % \
+                  (card[pkr.TableCards[0]] if len(pkr.TableCards) > 0 else " ",
+                   card[pkr.TableCards[1]] if len(pkr.TableCards) > 1 else " ",
+                   card[pkr.TableCards[2]] if len(pkr.TableCards) > 2 else " ",
+                   card[pkr.TableCards[3]] if len(pkr.TableCards) > 3 else " ",
+                   card[pkr.TableCards[4]] if len(pkr.TableCards) > 4 else " "))
+        
         print("also, you have " + str(self.chips) + " chips.\n")
         print("The pot is at " + str(pkr.pot) + " chips.\n")
         print("Current bet is " + str(pkr.bet) + " chips.\n")
@@ -436,13 +443,13 @@ def player_turn(N):
             player.plays()
 
 
-
 def nextplayer():
     pkr.whoplays += 1
     if pkr.whoplays >= len(players):
         pkr.whoplays = 0
     if players[pkr.whoplays].dead:
         nextplayer()
+
 
 def change_gamephase():
     survivors = []
@@ -452,10 +459,9 @@ def change_gamephase():
     pkr.lastbet = pkr.button
 
     phasenames = ['preflop', 'flop', 'turn', 'river']
-    if not pkr.gamephase:
-        x = 3
-    else:
-        x = 1
+    
+    x = 1 if pkr.gamephase else 3
+
     pkr.gamephase += 1
 
     if pkr.gamephase > 3:
@@ -560,7 +566,7 @@ def endgame(winner):
                     P.Brain.finalFeedback(0)
         print("Game Over. %s wins at round %i." % (Go[0].name,
                                                    pkr.roundcount))
-        time.sleep(10)
+        time.sleep(3)
         pkr.NewGame()
         
 
